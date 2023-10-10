@@ -9,9 +9,9 @@ import (
 	"errors"
 	"io"
 	"math/bits"
-	"proxy/tls_fork/internal/boring"
-	"proxy/tls_fork/internal/nistec"
-	"proxy/tls_fork/internal/randutil"
+	"proxy/tls-fork/internal/boring"
+	"proxy/tls-fork/internal/nistec"
+	"proxy/tls-fork/internal/randutil"
 )
 
 type nistCurve[Point nistPoint[Point]] struct {

@@ -18,7 +18,7 @@ import (
 	"hash"
 	"io"
 	"net"
-	"proxy/tls_fork/ecdh"
+	"proxy/tls-fork/ecdh"
 	"strings"
 	"time"
 )

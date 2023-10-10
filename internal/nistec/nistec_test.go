@@ -6,12 +6,12 @@ package nistec_test
 
 import (
 	"bytes"
-	"client/tls/internal/nistec"
 	"crypto/elliptic"
 	"fmt"
 	"internal/testenv"
 	"math/big"
 	"math/rand"
+	"proxy/tls-fork/internal/nistec"
 	"testing"
 )
 

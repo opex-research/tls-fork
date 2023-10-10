@@ -15,7 +15,7 @@ import (
 	"crypto/sha256"
 	"fmt"
 	"hash"
-	"proxy/tls_fork/internal/boring"
+	"proxy/tls-fork/internal/boring"
 
 	"golang.org/x/crypto/chacha20poly1305"
 )

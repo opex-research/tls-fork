@@ -10,7 +10,7 @@ import (
 	"crypto"
 	"crypto/cipher"
 	"hash"
-	"proxy/tls_fork/internal/boring/sig"
+	"proxy/tls-fork/internal/boring/sig"
 )
 
 const available = false

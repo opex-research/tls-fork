@@ -7,8 +7,8 @@ package ecdh
 import (
 	"errors"
 	"io"
-	"proxy/tls_fork/internal/edwards25519/field"
-	"proxy/tls_fork/internal/randutil"
+	"proxy/tls-fork/internal/edwards25519/field"
+	"proxy/tls-fork/internal/randutil"
 )
 
 var (

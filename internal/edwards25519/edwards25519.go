@@ -5,8 +5,8 @@
 package edwards25519
 
 import (
-	"client/tls/internal/edwards25519/field"
 	"errors"
+	"proxy/tls-fork/internal/edwards25519/field"
 )
 
 // Point types.

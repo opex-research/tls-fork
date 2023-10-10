@@ -13,7 +13,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"proxy/tls_fork/ecdh"
+	"proxy/tls-fork/ecdh"
 )
 
 // a keyAgreement implements the client and server side of a TLS key agreement

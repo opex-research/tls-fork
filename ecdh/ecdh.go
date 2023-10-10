@@ -11,7 +11,7 @@ import (
 	"crypto/subtle"
 	"errors"
 	"io"
-	"proxy/tls_fork/internal/boring"
+	"proxy/tls-fork/internal/boring"
 	"sync"
 )
 

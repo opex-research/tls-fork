@@ -17,7 +17,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"proxy/tls_fork/ecdh"
+	"proxy/tls-fork/ecdh"
 	"regexp"
 	"strings"
 	"testing"

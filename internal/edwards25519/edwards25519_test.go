@@ -5,9 +5,9 @@
 package edwards25519
 
 import (
-	"client/tls/internal/edwards25519/field"
 	"encoding/hex"
 	"internal/testenv"
+	"proxy/tls-fork/internal/edwards25519/field"
 	"reflect"
 	"testing"
 )

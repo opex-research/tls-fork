@@ -10,7 +10,7 @@ import (
 	"fmt"
 	"hash"
 	"io"
-	"proxy/tls_fork/ecdh"
+	"proxy/tls-fork/ecdh"
 
 	"golang.org/x/crypto/cryptobyte"
 	"golang.org/x/crypto/hkdf"
