@@ -9,7 +9,7 @@
 package nistec
 
 import (
-	"client/tls/internal/nistec/fiat"
+	"proxy/tls_fork/internal/nistec/fiat"
 	"crypto/subtle"
 	"errors"
 	"sync"

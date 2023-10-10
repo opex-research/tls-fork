@@ -12,7 +12,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	// "internal/testenv"
+	"internal/testenv"
 	"io"
 	"math"
 	"net"
@@ -473,7 +473,7 @@ func TestTLSUniqueMatches(t *testing.T) {
 }
 
 func TestVerifyHostname(t *testing.T) {
-	// testenv.MustHaveExternalNetwork(t)
+	testenv.MustHaveExternalNetwork(t)
 
 	c, err := Dial("tcp", "www.google.com:https", nil)
 	if err != nil {

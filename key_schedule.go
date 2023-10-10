@@ -5,14 +5,12 @@
 package tls
 
 import (
-	"client/tls_fork/ecdh"
-	"crypto/elliptic"
 	"crypto/hmac"
-	"encoding/hex"
 	"errors"
 	"fmt"
 	"hash"
 	"io"
+	"proxy/tls_fork/ecdh"
 
 	"golang.org/x/crypto/cryptobyte"
 	"golang.org/x/crypto/hkdf"
@@ -44,7 +42,6 @@ func (c *cipherSuiteTLS13) expandLabel(secret []byte, label string, context []by
 		b.AddBytes(context)
 	})
 	hkdfLabelBytes, err := hkdfLabel.Bytes()
-	fmt.Println("label:", string(hkdfLabelBytes), "label hex:", hex.EncodeToString(hkdfLabelBytes))
 	if err != nil {
 		// Rather than calling BytesOrPanic, we explicitly handle this error, in
 		// order to provide a reasonable error message. It should be basically
@@ -61,10 +58,7 @@ func (c *cipherSuiteTLS13) expandLabel(secret []byte, label string, context []by
 		panic(fmt.Errorf("failed to construct HKDF label: %s", err))
 	}
 	out := make([]byte, length)
-	// fmt.Println("hkdfLabelBytes", hkdfLabelBytes)
-	// fmt.Println("secret:", hex.EncodeToString(secret))
 	n, err := hkdf.Expand(c.hash.New, secret, hkdfLabelBytes).Read(out)
-	// fmt.Println("out:", hex.EncodeToString(out))
 	if err != nil || n != length {
 		panic("tls: HKDF-Expand-Label invocation failed unexpectedly")
 	}
@@ -143,19 +137,6 @@ func curveForCurveID(id CurveID) (ecdh.Curve, bool) {
 		return ecdh.P384(), true
 	case CurveP521:
 		return ecdh.P521(), true
-	default:
-		return nil, false
-	}
-}
-
-func ellipticCurveForCurveID(id CurveID) (elliptic.Curve, bool) {
-	switch id {
-	case CurveP256:
-		return elliptic.P256(), true
-	case CurveP384:
-		return elliptic.P384(), true
-	case CurveP521:
-		return elliptic.P521(), true
 	default:
 		return nil, false
 	}

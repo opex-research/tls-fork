@@ -5,13 +5,13 @@
 package ecdh
 
 import (
-	"client/tls_fork/internal/boring"
-	"client/tls_fork/internal/nistec"
-	"client/tls_fork/internal/randutil"
 	"encoding/binary"
 	"errors"
 	"io"
 	"math/bits"
+	"proxy/tls_fork/internal/boring"
+	"proxy/tls_fork/internal/nistec"
+	"proxy/tls_fork/internal/randutil"
 )
 
 type nistCurve[Point nistPoint[Point]] struct {

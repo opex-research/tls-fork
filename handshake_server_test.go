@@ -6,9 +6,9 @@ package tls
 
 import (
 	"bytes"
-	"client/tls_fork/ecdh"
 	"context"
 	"crypto"
+	"crypto/ecdh"
 	"crypto/elliptic"
 	"crypto/rand"
 	"crypto/x509"

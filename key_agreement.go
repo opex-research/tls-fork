@@ -5,7 +5,6 @@
 package tls
 
 import (
-	"client/tls_fork/ecdh"
 	"crypto"
 	"crypto/md5"
 	"crypto/rsa"
@@ -14,6 +13,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"proxy/tls_fork/ecdh"
 )
 
 // a keyAgreement implements the client and server side of a TLS key agreement

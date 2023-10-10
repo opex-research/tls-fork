@@ -8,7 +8,6 @@ import (
 	"crypto/hmac"
 	"encoding/binary"
 	"encoding/hex"
-	"fmt"
 	"math/bits"
 	"reflect"
 )
@@ -20,87 +19,11 @@ import (
 // functions starting with V are computed in postprocessing by the verifier
 ////////////////
 
-// functions for key, iv derivation
-func ZKIntermediateHashHSopad(HS []byte) []byte {
-	HSopad := XorOPad(HS)
-	IV := make([]byte, 0)
-	_, intermediateHashHSopad, _ := SumMDShacal2(0, IV, HSopad)
-	return intermediateHashHSopad
-}
-
-func PSHTSin(intermediateHashHSipad, H2 []byte) []byte {
-	mH2 := GetSha256LabelTLS13("s hs traffic", H2, 32)
-	fmt.Println("mH2:", hex.EncodeToString(mH2))
-	SHTSin, _, _ := SumMDShacal2(64, intermediateHashHSipad, mH2)
-	fmt.Println("SHTSin", hex.EncodeToString(SHTSin))
-	return SHTSin
-}
-
-func VSHTS(intermediateHashHSopad, SHTSin []byte) []byte {
-	SHTS, _, _ := SumMDShacal2(64, intermediateHashHSopad, SHTSin)
-	return SHTS
-}
-
-func PdHSin(intermediateHashHSipad []byte) []byte {
-	emptyStringBytes, _ := hex.DecodeString("")
-	h0 := Sum256(emptyStringBytes)
-	mH0 := GetSha256LabelTLS13("derived", h0, 32)
-	dHSin, _, _ := SumMDShacal2(64, intermediateHashHSipad, mH0)
-	return dHSin
-}
-
-func ZKdHS(intermediateHashHSopad, dHSin []byte) []byte {
-	dHS, _, _ := SumMDShacal2(64, intermediateHashHSopad, dHSin)
-	return dHS
-}
-
-func PIntermediateHashdHSipad(dHS []byte) []byte {
-	dHSipad := XorIPad(dHS)
-	IV := make([]byte, 0)
-	_, intermediateHashdHSipad, _ := SumMDShacal2(0, IV, dHSipad)
-	return intermediateHashdHSipad
-}
-
-func VMSin(intermediateHashdHSipad []byte) []byte {
-	zeros := make([]byte, 32)
-	MSin, _, _ := SumMDShacal2(64, intermediateHashdHSipad, zeros) // 0 input
-	return MSin
-}
-
-func ZKMS(dHS, MSin []byte) []byte {
-	dHSopad := XorOPad(dHS)
-	IV := make([]byte, 0)
-	_, opadHash, _ := SumMDShacal2(0, IV, dHSopad)
-	MS, _, _ := SumMDShacal2(64, opadHash, MSin)
-	return MS
-}
-
-func PIntermediateHashMSipad(MS []byte) []byte {
-	MSipad := XorIPad(MS)
-	IV := make([]byte, 0)
-	_, intermediateHashMSipad, _ := SumMDShacal2(0, IV, MSipad)
-	return intermediateHashMSipad
-}
-
-func VXATSin(intermediateHashMSipad, H3 []byte, label string) []byte {
-	mH3 := GetSha256LabelTLS13(label, H3, 32)
-	SATSin, _, _ := SumMDShacal2(64, intermediateHashMSipad, mH3)
-	return SATSin
-}
-
-func ZKXATS(MS, XATSin []byte) []byte {
-	MSopad := XorOPad(MS)
-	IV := make([]byte, 0)
-	_, opadHash, _ := SumMDShacal2(0, IV, MSopad)
-	XATS, _, _ := SumMDShacal2(64, opadHash, XATSin)
-	return XATS
-}
-
-func PIntermediateHashXATSipad(XATS []byte) []byte {
-	XATSipad := XorIPad(XATS)
-	IV := make([]byte, 0)
-	_, intermediateHashXATSipad, _ := SumMDShacal2(0, IV, XATSipad)
-	return intermediateHashXATSipad
+// kdc functions to compute required public input
+func VIVin(intermediateHashXATSipad []byte) []byte {
+	miv := GetSha256LabelTLS13("iv", nil, 12)
+	IVin, _, _ := SumMDShacal2(64, intermediateHashXATSipad, miv)
+	return IVin
 }
 
 func VTkXAPPin(intermediateHashXATSipad []byte) []byte {
@@ -109,27 +32,16 @@ func VTkXAPPin(intermediateHashXATSipad []byte) []byte {
 	return tkXAPPin
 }
 
-func ZKIntermediateHashXATSopad(SATS []byte) []byte {
-	SATSopad := XorOPad(SATS)
-	IV := make([]byte, 0)
-	_, intermediateHashXATSopad, _ := SumMDShacal2(0, IV, SATSopad)
-	return intermediateHashXATSopad
+func VXATSin(intermediateHashMSipad, H3 []byte, label string) []byte {
+	mH3 := GetSha256LabelTLS13(label, H3, 32)
+	SATSin, _, _ := SumMDShacal2(64, intermediateHashMSipad, mH3)
+	return SATSin
 }
 
-func ZKtkXAPP(intermediateHashXATSopad, tkSAPPin []byte) []byte {
-	tkSAPP, _, _ := SumMDShacal2(64, intermediateHashXATSopad, tkSAPPin)
-	return tkSAPP[:16]
-}
-
-func VIVin(intermediateHashXATSipad []byte) []byte {
-	miv := GetSha256LabelTLS13("iv", nil, 12)
-	IVin, _, _ := SumMDShacal2(64, intermediateHashXATSipad, miv)
-	return IVin
-}
-
-func PIV(intermediateHashXATSopad, IVin []byte) []byte {
-	IV, _, _ := SumMDShacal2(64, intermediateHashXATSopad, IVin)
-	return IV[:12]
+func VMSin(intermediateHashdHSipad []byte) []byte {
+	zeros := make([]byte, 32)
+	MSin, _, _ := SumMDShacal2(64, intermediateHashdHSipad, zeros) // 0 input
+	return MSin
 }
 
 // function in zk kdc scope
@@ -144,10 +56,8 @@ func PIntermediateHashHSopad(HSBytes []byte) []byte {
 
 func PIntermediateHashHSipad(HSBytes []byte) []byte {
 	HSipad := XorIPad(HSBytes)
-	fmt.Println("HSipad", hex.EncodeToString(HSipad))
 	IV := make([]byte, 0)
-	h, intermediateHashHSipad, _ := SumMDShacal2(0, IV, HSipad)
-	fmt.Println("h", hex.EncodeToString(h))
+	_, intermediateHashHSipad, _ := SumMDShacal2(0, IV, HSipad)
 	return intermediateHashHSipad
 }
 
@@ -165,7 +75,12 @@ func VDeriveSHTS(intermediateHashHSopad, SHTSin []byte) []byte {
 	return shtsPrime
 }
 
-func VVerifySHTS(intermediateHashHSopad, intermediateHashHSipad, H2, SHTS []byte) bool {
+func VVerifySHTS(intermediateHashHSopad, shtsIn, SHTS []byte) bool {
+	SHTSPrime := VDeriveSHTS(intermediateHashHSopad, shtsIn)
+	return reflect.DeepEqual(SHTSPrime, SHTS)
+}
+
+func VVerifySHTSold(intermediateHashHSopad, intermediateHashHSipad, H2, SHTS []byte) bool {
 	SHTSin := VDeriveSHTSin(intermediateHashHSipad, H2)
 	SHTSPrime := VDeriveSHTS(intermediateHashHSopad, SHTSin)
 	return reflect.DeepEqual(SHTSPrime, SHTS)
@@ -218,7 +133,7 @@ func VSFtoPublicInput(ciphertext, H2, SHTS, nonce, additionalData, intermediateH
 	}
 
 	// verify SHTS to public input of zk kdc circuit
-	ok2 := VVerifySHTS(intermediateHashHSopad, intermediateHashHSipad, H2, SHTS)
+	ok2 := VVerifySHTSold(intermediateHashHSopad, intermediateHashHSipad, H2, SHTS)
 
 	// derive SF from SHTS and check against plaintextSF
 	plaintextSFBytes, _ := hex.DecodeString(plaintextSF)
@@ -420,7 +335,6 @@ func (d *digest) Write(p []byte) (nn int, err error) {
 		n := copy(d.x[d.nx:], p)
 		d.nx += n
 		if d.nx == chunk {
-			// fmt.Println("hex dHSin:", hex.EncodeToString(d.x[:]), len(hex.EncodeToString(d.x[:]))/2)
 			block(d, d.x[:])
 			d.nx = 0
 		}
@@ -439,7 +353,6 @@ func (d *digest) Write(p []byte) (nn int, err error) {
 
 func (d *digest) checkSum() [Size]byte {
 	len := d.len
-
 	// Padding. Add a 1 bit and 0 bits until 56 bytes mod 64.
 	var tmp [64 + 8]byte // padding + length buffer
 	tmp[0] = 0x80

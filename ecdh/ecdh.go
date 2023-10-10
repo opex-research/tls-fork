@@ -7,11 +7,11 @@
 package ecdh
 
 import (
-	"client/tls_fork/internal/boring"
 	"crypto"
 	"crypto/subtle"
 	"errors"
 	"io"
+	"proxy/tls_fork/internal/boring"
 	"sync"
 )
 

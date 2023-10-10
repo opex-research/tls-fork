@@ -6,17 +6,17 @@ package nistec_test
 
 import (
 	"bytes"
-	"client/tls_fork/internal/nistec"
+	"client/tls/internal/nistec"
 	"crypto/elliptic"
 	"fmt"
-	// "internal/testenv"
+	"internal/testenv"
 	"math/big"
 	"math/rand"
 	"testing"
 )
 
 func TestAllocations(t *testing.T) {
-	// testenv.SkipIfOptimizationOff(t)
+	testenv.SkipIfOptimizationOff(t)
 
 	t.Run("P224", func(t *testing.T) {
 		if allocs := testing.AllocsPerRun(100, func() {

@@ -7,10 +7,10 @@
 package boring
 
 import (
-	"client/tls_fork/internal/boring/sig"
 	"crypto"
 	"crypto/cipher"
 	"hash"
+	"proxy/tls_fork/internal/boring/sig"
 )
 
 const available = false

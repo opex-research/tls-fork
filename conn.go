@@ -12,7 +12,6 @@ import (
 	"crypto/cipher"
 	"crypto/subtle"
 	"crypto/x509"
-	"encoding/hex"
 	"errors"
 	"fmt"
 	"hash"
@@ -118,9 +117,6 @@ type Conn struct {
 	activeCall atomic.Int32
 
 	tmp [16]byte
-
-	// jan
-	secretMap map[string][]byte
 }
 
 // Access to net.Conn methods.
@@ -164,38 +160,6 @@ func (c *Conn) NetConn() net.Conn {
 	return c.conn
 }
 
-// jan Conn extra methods
-func (c *Conn) SetSecret(name string, value []byte) {
-	if c.secretMap == nil {
-		c.secretMap = make(map[string][]byte)
-	}
-	c.secretMap[name] = value
-}
-
-func (c *Conn) GetSecretMap() map[string][]byte {
-	return c.secretMap
-}
-
-func (c *Conn) ShowRecordMap() string {
-	var buffer bytes.Buffer
-	for k, v := range c.in.recordMap {
-		buffer.WriteString(k)
-		buffer.WriteString(":\n")
-		if v.Typ == "SF" {
-			buffer.WriteString(hex.EncodeToString(v.Payload))
-		}
-		if v.Typ == "SR" {
-			buffer.WriteString(string(v.Payload))
-		}
-		buffer.WriteString("\n")
-	}
-	return buffer.String()
-}
-
-func (c *Conn) GetRecordMap() map[string]RecordMeta {
-	return c.in.recordMap
-}
-
 // A halfConn represents one direction of the record layer
 // connection, either sending or receiving.
 type halfConn struct {
@@ -213,28 +177,6 @@ type halfConn struct {
 	nextMac    hash.Hash // next MAC algorithm
 
 	trafficSecret []byte // current TLS 1.3 traffic secret
-
-	// jan
-	recordMap map[string]RecordMeta
-}
-
-type RecordMeta struct {
-	AdditionalData []byte `json:"additionalData"`
-	Typ            string `json:"typ"`
-	Payload        []byte `json:"payload"`
-	Ciphertext     []byte `json:"ciphertext"`
-}
-
-func (hc *halfConn) setRecordMeta(ad, payload, ciphertext, nonce []byte, typ string) {
-	if hc.recordMap == nil {
-		hc.recordMap = make(map[string]RecordMeta)
-	}
-	hc.recordMap[hex.EncodeToString(nonce)] = RecordMeta{
-		AdditionalData: ad,
-		Payload:        payload,
-		Typ:            typ,
-		Ciphertext:     ciphertext,
-	}
 }
 
 type permanentError struct {
@@ -282,8 +224,6 @@ func (hc *halfConn) changeCipherSpec() error {
 func (hc *halfConn) setTrafficSecret(suite *cipherSuiteTLS13, secret []byte) {
 	hc.trafficSecret = secret
 	key, iv := suite.trafficKey(secret)
-	// fmt.Println("key:", hex.EncodeToString(key))
-	// fmt.Println("iv:", hex.EncodeToString(iv))
 	hc.cipher = suite.aead(key, iv)
 	for i := range hc.seq {
 		hc.seq[i] = 0
@@ -391,7 +331,7 @@ type cbcMode interface {
 
 // decrypt authenticates and decrypts the record if protection is active at
 // this stage. The returned plaintext might overlap with the input.
-func (hc *halfConn) decrypt(record []byte, handshakeComplete bool) ([]byte, recordType, error) {
+func (hc *halfConn) decrypt(record []byte) ([]byte, recordType, error) {
 	var plaintext []byte
 	typ := recordType(record[0])
 	payload := record[recordHeaderLen:]
@@ -431,41 +371,11 @@ func (hc *halfConn) decrypt(record []byte, handshakeComplete bool) ([]byte, reco
 				additionalData = append(additionalData, byte(n>>8), byte(n))
 			}
 
-			// create new nonce which is independent of seq,
-			// otherwise it changes when storing in file later
-			tmp_nonce := make([]byte, 8)
-			copy(tmp_nonce, nonce)
-
-			// copy record
-			// uncomment later, only required for function testing
-			ciphertextCopy := make([]byte, len(payload))
-			copy(ciphertextCopy, payload)
-
 			var err error
 			plaintext, err = c.Open(payload[:0], nonce, payload, additionalData)
 			if err != nil {
 				return nil, 0, alertBadRecordMAC
 			}
-
-			// capture decryption meta data to decrypt record containing SF
-			// traffictranscript is SHTS which can be disclosed safely in TLS1.3
-			if typ == recordTypeApplicationData {
-				if !handshakeComplete {
-					if bytes.Equal(plaintext[:3], []byte{20, 0, 0}) {
-
-						// found SF
-						// recordHash := sha256.Sum256(ciphertextCopy)
-						// hc.setRecordMeta(additionalData, tmp_nonce, hc.trafficSecret, ciphertextCopy, hex.EncodeToString(recordHash[:]), "SF")
-						hc.setRecordMeta(additionalData, hc.trafficSecret, ciphertextCopy, tmp_nonce, "SF")
-					}
-				}
-				if handshakeComplete {
-
-					// capture post handshake traffic (server response data)
-					hc.setRecordMeta(additionalData, plaintext, ciphertextCopy, tmp_nonce, "SR")
-				}
-			}
-
 		case cbcMode:
 			blockSize := c.BlockSize()
 			minPayload := explicitNonceLen + roundUp(hc.mac.Size()+1, blockSize)
@@ -758,7 +668,7 @@ func (c *Conn) readRecordOrCCS(expectChangeCipherSpec bool) error {
 
 	// Process message.
 	record := c.rawInput.Next(recordHeaderLen + n)
-	data, typ, err := c.in.decrypt(record, handshakeComplete)
+	data, typ, err := c.in.decrypt(record)
 	if err != nil {
 		return c.in.setErrorLocked(c.sendAlert(err.(alert)))
 	}

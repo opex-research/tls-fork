@@ -5,7 +5,7 @@
 package nistec
 
 import (
-	"client/tls_fork/internal/nistec/fiat"
+	"proxy/tls_fork/internal/nistec/fiat"
 	"sync"
 )
 

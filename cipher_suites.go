@@ -5,7 +5,6 @@
 package tls
 
 import (
-	"client/tls_fork/internal/boring"
 	"crypto"
 	"crypto/aes"
 	"crypto/cipher"
@@ -16,6 +15,7 @@ import (
 	"crypto/sha256"
 	"fmt"
 	"hash"
+	"proxy/tls_fork/internal/boring"
 
 	"golang.org/x/crypto/chacha20poly1305"
 )
@@ -347,8 +347,8 @@ var defaultCipherSuitesTLS13 = []uint16{
 }
 
 var defaultCipherSuitesTLS13NoAES = []uint16{
-	TLS_AES_128_GCM_SHA256,
 	TLS_CHACHA20_POLY1305_SHA256,
+	TLS_AES_128_GCM_SHA256,
 	TLS_AES_256_GCM_SHA384,
 }
 
@@ -362,6 +362,7 @@ var (
 	// hasAESGCMHardwareSupport = runtime.GOARCH == "amd64" && hasGCMAsmAMD64 ||
 	// 	runtime.GOARCH == "arm64" && hasGCMAsmARM64 ||
 	// 	runtime.GOARCH == "s390x" && hasGCMAsmS390X
+
 	hasAESGCMHardwareSupport = false
 )
 
@@ -528,7 +529,6 @@ func aeadAESGCM(key, noncePrefix []byte) aead {
 
 	ret := &prefixNonceAEAD{aead: aead}
 	copy(ret.nonce[:], noncePrefix)
-
 	return ret
 }
 
@@ -547,7 +547,6 @@ func aeadAESGCMTLS13(key, nonceMask []byte) aead {
 
 	ret := &xorNonceAEAD{aead: aead}
 	copy(ret.nonceMask[:], nonceMask)
-
 	return ret
 }
 
