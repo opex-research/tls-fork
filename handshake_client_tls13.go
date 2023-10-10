@@ -12,7 +12,6 @@ import (
 	"crypto/hmac"
 	"crypto/rsa"
 	"errors"
-	"fmt"
 	"hash"
 	"time"
 )
@@ -366,48 +365,20 @@ func (hs *clientHandshakeStateTLS13) processServerHello() error {
 func (hs *clientHandshakeStateTLS13) establishHandshakeKeys() error {
 	c := hs.c
 
-	// call ectf function
-	// helper function to get the basic computation together
-	// err := computeECTF(c.config, hs.hello, hs.serverHello, hs.ecdheKey)
-	// if err != nil {
-	// 	fmt.Println("error in computeECTF", err)
-	// }
-	// fmt.Println("keyshares", hs.hello.keyShares[:])
-
-	// janus remove
-	// server key
-	// peerKey, err := hs.ecdheKey.Curve().NewPublicKey(hs.serverHello.serverShare.data)
-	// if err != nil {
-	// 	c.sendAlert(alertIllegalParameter)
-	// 	return errors.New("tls: invalid server key share")
-	// }
-
-	// for genClientSharesDHE,
-	// in order for this to work, hs.clientHello.clientShare.data
-	// must contain proxy secret data added when being sent to server!
-
-	// print server share
-	// fmt.Println(hs.serverHello.serverShare.data)
-
-	t1 := time.Now()
-
-	// janus required: generate secret shares
-	sharedKey, err := genClientSharesDHE(c.config, hs.serverHello.serverShare.data, hs.ecdheKey, hs.ecdheKey2)
+	peerKey, err := hs.ecdheKey.Curve().NewPublicKey(hs.serverHello.serverShare.data)
 	if err != nil {
-		fmt.Println("error in genClientSharesDHE", err)
+		c.sendAlert(alertIllegalParameter)
+		return errors.New("tls: invalid server key share")
 	}
 
-	fmt.Println("ectf took:", time.Since(t1))
-
-	// janus remove
 	// sharedKey = DHE, hs.ecdheKey is the client key
-	// sharedKey, err := hs.ecdheKey.ECDH(peerKey) // old line
-	// if err != nil {
-	// 	c.sendAlert(alertIllegalParameter)
-	// 	return errors.New("tls: invalid server key share")
-	// }
+	sharedKey, err := hs.ecdheKey.ECDH(peerKey) // old line
+	if err != nil {
+		c.sendAlert(alertIllegalParameter)
+		return errors.New("tls: invalid server key share")
+	}
 	// fmt.Println("DHE:", hex.EncodeToString(sharedKey))
-	// c.SetSecret("DHE", sharedKey)
+	c.SetSecret("DHE", sharedKey)
 
 	// earlySecret = ES
 	earlySecret := hs.earlySecret

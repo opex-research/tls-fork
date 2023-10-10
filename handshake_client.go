@@ -36,27 +36,27 @@ type clientHandshakeState struct {
 
 var testingOnlyForceClientHelloSignatureAlgorithms []SignatureScheme
 
-func (c *Conn) makeClientHello() (*clientHelloMsg, *ecdh.PrivateKey, *ecdh.PrivateKey, error) {
+func (c *Conn) makeClientHello() (*clientHelloMsg, *ecdh.PrivateKey, error) {
 	config := c.config
 	if len(config.ServerName) == 0 && !config.InsecureSkipVerify {
-		return nil, nil, nil, errors.New("tls: either ServerName or InsecureSkipVerify must be specified in the tls.Config")
+		return nil, nil, errors.New("tls: either ServerName or InsecureSkipVerify must be specified in the tls.Config")
 	}
 
 	nextProtosLength := 0
 	for _, proto := range config.NextProtos {
 		if l := len(proto); l == 0 || l > 255 {
-			return nil, nil, nil, errors.New("tls: invalid NextProtos value")
+			return nil, nil, errors.New("tls: invalid NextProtos value")
 		} else {
 			nextProtosLength += 1 + l
 		}
 	}
 	if nextProtosLength > 0xffff {
-		return nil, nil, nil, errors.New("tls: NextProtos values too large")
+		return nil, nil, errors.New("tls: NextProtos values too large")
 	}
 
 	supportedVersions := config.supportedVersions(roleClient)
 	if len(supportedVersions) == 0 {
-		return nil, nil, nil, errors.New("tls: no supported versions satisfy MinVersion and MaxVersion")
+		return nil, nil, errors.New("tls: no supported versions satisfy MinVersion and MaxVersion")
 	}
 
 	clientHelloVersion := config.maxSupportedVersion(roleClient)
@@ -108,14 +108,14 @@ func (c *Conn) makeClientHello() (*clientHelloMsg, *ecdh.PrivateKey, *ecdh.Priva
 
 	_, err := io.ReadFull(config.rand(), hello.random)
 	if err != nil {
-		return nil, nil, nil, errors.New("tls: short read from Rand: " + err.Error())
+		return nil, nil, errors.New("tls: short read from Rand: " + err.Error())
 	}
 
 	// A random session ID is used to detect when the server accepted a ticket
 	// and is resuming a session (see RFC 5077). In TLS 1.3, it's always set as
 	// a compatibility measure (see RFC 8446, Section 4.1.2).
 	if _, err := io.ReadFull(config.rand(), hello.sessionId); err != nil {
-		return nil, nil, nil, errors.New("tls: short read from Rand: " + err.Error())
+		return nil, nil, errors.New("tls: short read from Rand: " + err.Error())
 	}
 
 	if hello.vers >= VersionTLS12 {
@@ -127,9 +127,6 @@ func (c *Conn) makeClientHello() (*clientHelloMsg, *ecdh.PrivateKey, *ecdh.Priva
 
 	var key *ecdh.PrivateKey
 
-	// janus required
-	var key2 *ecdh.PrivateKey // modified for proxy key injection
-
 	if hello.supportedVersions[0] == VersionTLS13 {
 		if hasAESGCMHardwareSupport {
 			hello.cipherSuites = append(hello.cipherSuites, defaultCipherSuitesTLS13...)
@@ -139,30 +136,18 @@ func (c *Conn) makeClientHello() (*clientHelloMsg, *ecdh.PrivateKey, *ecdh.Priva
 
 		curveID := config.curvePreferences()[0]
 		if _, ok := curveForCurveID(curveID); !ok {
-			return nil, nil, nil, errors.New("tls: CurvePreferences includes unsupported curve")
+			return nil, nil, errors.New("tls: CurvePreferences includes unsupported curve")
 		}
 		key, err = generateECDHEKey(config.rand(), curveID)
 		if err != nil {
-			return nil, nil, nil, err
+			return nil, nil, err
 		}
-
-		// janus required
-		// MODIFIED: injecting proxy key share here
-		proxyKey, proxyClientPubKey, err := genProxyShare(config, curveID, key)
-		if err != nil {
-			return nil, nil, nil, err
-		}
-		key2 = proxyKey
-
-		// janus required
-		// MODIFIED: setting shared public key
-		hello.keyShares = []keyShare{{group: curveID, data: proxyClientPubKey.Bytes()}}
 
 		// commented out old line
-		// hello.keyShares = []keyShare{{group: curveID, data: key.PublicKey().Bytes()}}
+		hello.keyShares = []keyShare{{group: curveID, data: key.PublicKey().Bytes()}}
 	}
 
-	return hello, key, key2, nil
+	return hello, key, nil
 }
 
 func (c *Conn) clientHandshake(ctx context.Context) (err error) {
@@ -174,7 +159,7 @@ func (c *Conn) clientHandshake(ctx context.Context) (err error) {
 	// need to be reset.
 	c.didResume = false
 
-	hello, ecdheKey, ecdheKey2, err := c.makeClientHello() // modified for proxy keyshare
+	hello, ecdheKey, err := c.makeClientHello() // modified for proxy keyshare
 	if err != nil {
 		return err
 	}
@@ -237,7 +222,6 @@ func (c *Conn) clientHandshake(ctx context.Context) (err error) {
 			serverHello: serverHello,
 			hello:       hello,
 			ecdheKey:    ecdheKey,
-			ecdheKey2:   ecdheKey2, // modified for proxy key share
 			session:     session,
 			earlySecret: earlySecret,
 			binderKey:   binderKey,
