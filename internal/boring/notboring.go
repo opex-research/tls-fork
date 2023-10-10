@@ -7,7 +7,7 @@
 package boring
 
 import (
-	"client/tls_fork/internal/boring/sig"
+	"client/tls-fork/internal/boring/sig"
 	"crypto"
 	"crypto/cipher"
 	"hash"

@@ -5,7 +5,7 @@
 package tls
 
 import (
-	"client/tls_fork/ecdh"
+	"client/tls-fork/ecdh"
 	"crypto"
 	"crypto/md5"
 	"crypto/rsa"

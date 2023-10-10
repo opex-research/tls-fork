@@ -5,8 +5,8 @@
 package ecdh
 
 import (
-	"client/tls_fork/internal/edwards25519/field"
-	"client/tls_fork/internal/randutil"
+	"client/tls-fork/internal/edwards25519/field"
+	"client/tls-fork/internal/randutil"
 	"errors"
 	"io"
 )

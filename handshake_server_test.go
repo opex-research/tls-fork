@@ -6,7 +6,7 @@ package tls
 
 import (
 	"bytes"
-	"client/tls_fork/ecdh"
+	"client/tls-fork/ecdh"
 	"context"
 	"crypto"
 	"crypto/elliptic"

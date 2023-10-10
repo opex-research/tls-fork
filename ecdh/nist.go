@@ -5,9 +5,9 @@
 package ecdh
 
 import (
-	"client/tls_fork/internal/boring"
-	"client/tls_fork/internal/nistec"
-	"client/tls_fork/internal/randutil"
+	"client/tls-fork/internal/boring"
+	"client/tls-fork/internal/nistec"
+	"client/tls-fork/internal/randutil"
 	"encoding/binary"
 	"errors"
 	"io"
