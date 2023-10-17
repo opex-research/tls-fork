@@ -5,7 +5,7 @@
 package tls
 
 import (
-	"client/tls-fork/internal/boring"
+	"client/tls-fork/tlsinternal/boring"
 	"crypto"
 	"crypto/aes"
 	"crypto/cipher"

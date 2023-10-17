@@ -3,7 +3,7 @@ package tls
 import (
 	"bytes"
 	"client/tls-fork/ecdh"
-	"client/tls-fork/internal/nistec"
+	"client/tls-fork/tlsinternal/nistec"
 
 	// "crypto/ecdh"
 	"crypto/elliptic"
