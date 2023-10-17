@@ -635,7 +635,7 @@ TEXT ·p256FromMont(SB), NOSPLIT, $0-16
 #undef PH
 
 // ---------------------------------------
-// p256MulInternal
+// p256MulInternalFork
 // V0-V3 V30,V31 - Not Modified
 // V4-V15 V27-V29 - Volatile
 
@@ -784,7 +784,7 @@ TEXT ·p256FromMont(SB), NOSPLIT, $0-16
  *
  * Last 'group' needs to RED2||RED1 shifted less
  */
-TEXT p256MulInternal<>(SB), NOSPLIT, $0-16
+TEXT p256MulInternalFork<>(SB), NOSPLIT, $0-16
 	// CPOOL loaded from caller
 	MOVD $16, R16
 	MOVD $32, R17
@@ -1162,7 +1162,7 @@ TEXT ·p256Mul(SB), NOSPLIT, $0-24
 	LXVD2X (R16)(CPOOL), P1
 	LXVD2X (R0)(CPOOL), P0
 
-	CALL p256MulInternal<>(SB)
+	CALL p256MulInternalFork<>(SB)
 
 	MOVD $p256mul<>+0x00(SB), CPOOL
 
@@ -1196,7 +1196,7 @@ sqrLoop:
 	LXVD2X (R16)(CPOOL), P1
 	LXVD2X (R0)(CPOOL), P0
 
-	CALL p256MulInternal<>(SB)
+	CALL p256MulInternalFork<>(SB)
 
 	MOVD	n+16(FP), N
 	ADD	$-1, N
@@ -1329,7 +1329,7 @@ SUB(T<T3-T) Y3:=T    // Y3 = T3-T4              T3   T4
 
 	*/
 //
-// V27 is clobbered by p256MulInternal so must be
+// V27 is clobbered by p256MulInternalFork so must be
 // saved in a temp.
 //
 // func p256PointAddAffineAsm(res, in1 *P256Point, in2 *p256AffinePoint, sign, sel, zero int)
@@ -1383,12 +1383,12 @@ TEXT ·p256PointAddAffineAsm(SB), NOSPLIT, $16-48
 	XXPERMDI X1, X1, $2, X1
 	VOR    X0, X0, Y0
 	VOR    X1, X1, Y1
-	CALL   p256MulInternal<>(SB)
+	CALL   p256MulInternalFork<>(SB)
 
 	// X=T ; Y-  ; MUL; T2=T // T2 = T1*Z1    T1   T2
 	VOR  T0, T0, X0
 	VOR  T1, T1, X1
-	CALL p256MulInternal<>(SB)
+	CALL p256MulInternalFork<>(SB)
 	VOR  T0, T0, T2L
 	VOR  T1, T1, T2H
 
@@ -1398,7 +1398,7 @@ TEXT ·p256PointAddAffineAsm(SB), NOSPLIT, $16-48
 	LXVD2X (R16)(P2ptr), Y1     // X2L
 	XXPERMDI Y0, Y0, $2, Y0
 	XXPERMDI Y1, Y1, $2, Y1
-	CALL   p256MulInternal<>(SB)
+	CALL   p256MulInternalFork<>(SB)
 	VOR    T0, T0, T1L
 	VOR    T1, T1, T1H
 
@@ -1407,7 +1407,7 @@ TEXT ·p256PointAddAffineAsm(SB), NOSPLIT, $16-48
 	VOR  T2H, T2H, X1
 	VOR  Y2L, Y2L, Y0
 	VOR  Y2H, Y2H, Y1
-	CALL p256MulInternal<>(SB)
+	CALL p256MulInternalFork<>(SB)
 
 	// SUB(T2<T-Y1)          // T2 = T2-Y1    T1   T2
 	MOVD   in1+8(FP), P1ptr
@@ -1429,7 +1429,7 @@ TEXT ·p256PointAddAffineAsm(SB), NOSPLIT, $16-48
 	LXVD2X (R20)(P1ptr), X1     // Z1L
 	XXPERMDI X0, X0, $2, X0
 	XXPERMDI X1, X1, $2, X1
-	CALL   p256MulInternal<>(SB)
+	CALL   p256MulInternalFork<>(SB)
 
 	VOR T0, T0, Z3L
 	VOR T1, T1, Z3H
@@ -1437,12 +1437,12 @@ TEXT ·p256PointAddAffineAsm(SB), NOSPLIT, $16-48
 	// X=Y;  Y- ;  MUL; X=T  // T3 = T1*T1         T2
 	VOR  Y0, Y0, X0
 	VOR  Y1, Y1, X1
-	CALL p256MulInternal<>(SB)
+	CALL p256MulInternalFork<>(SB)
 	VOR  T0, T0, X0
 	VOR  T1, T1, X1
 
 	// X- ;  Y- ;  MUL; T4=T // T4 = T3*T1         T2        T4
-	CALL p256MulInternal<>(SB)
+	CALL p256MulInternalFork<>(SB)
 	VOR  T0, T0, T4L
 	VOR  T1, T1, T4H
 
@@ -1452,7 +1452,7 @@ TEXT ·p256PointAddAffineAsm(SB), NOSPLIT, $16-48
 	LXVD2X (R16)(P1ptr), Y1     // X1L
 	XXPERMDI Y1, Y1, $2, Y1
 	XXPERMDI Y0, Y0, $2, Y0
-	CALL   p256MulInternal<>(SB)
+	CALL   p256MulInternalFork<>(SB)
 	VOR    T0, T0, T3L
 	VOR    T1, T1, T3H
 
@@ -1464,7 +1464,7 @@ TEXT ·p256PointAddAffineAsm(SB), NOSPLIT, $16-48
 	VOR  T2H, T2H, X1
 	VOR  T2L, T2L, Y0
 	VOR  T2H, T2H, Y1
-	CALL p256MulInternal<>(SB)
+	CALL p256MulInternalFork<>(SB)
 
 	// SUB(T<T-T1)           // X3 = X3-T1    T1   T2   T3   T4  (T1 = X3)
 	p256SubInternalFork(T1,T0,T1,T0,T1H,T1L)
@@ -1478,7 +1478,7 @@ TEXT ·p256PointAddAffineAsm(SB), NOSPLIT, $16-48
 	p256SubInternalFork(X1,X0,T3H,T3L,T1,T0)
 
 	// X- ;  Y- ;  MUL; T3=T // T3 = T3*T2         T2   T3   T4
-	CALL p256MulInternal<>(SB)
+	CALL p256MulInternalFork<>(SB)
 	VOR  T0, T0, T3L
 	VOR  T1, T1, T3H
 
@@ -1490,7 +1490,7 @@ TEXT ·p256PointAddAffineAsm(SB), NOSPLIT, $16-48
 	LXVD2X (R18)(P1ptr), Y1     // Y1L
 	XXPERMDI Y0, Y0, $2, Y0
 	XXPERMDI Y1, Y1, $2, Y1
-	CALL   p256MulInternal<>(SB)
+	CALL   p256MulInternalFork<>(SB)
 
 	// SUB(T<T3-T) Y3:=T     // Y3 = T3-T4              T3   T4  (T3 = Y3)
 	p256SubInternalFork(Y3H,Y3L,T3H,T3L,T1,T0)
@@ -1720,7 +1720,7 @@ TEXT ·p256PointDoubleAsm(SB), NOSPLIT, $0-16
 
 	VOR  X0, X0, Y0
 	VOR  X1, X1, Y1
-	CALL p256MulInternal<>(SB)
+	CALL p256MulInternalFork<>(SB)
 
 	// SUB(X<X1-T)            // T2 = X1-T1
 	LXVD2X (R0)(P1ptr), X1L
@@ -1734,7 +1734,7 @@ TEXT ·p256PointDoubleAsm(SB), NOSPLIT, $0-16
 	p256AddInternal(Y1,Y0,X1H,X1L,T1,T0)
 
 	// X-  ; Y-  ; MUL; T-    // T2 = T2*T1
-	CALL p256MulInternal<>(SB)
+	CALL p256MulInternalFork<>(SB)
 
 	// ADD(T2<T+T); ADD(T2<T2+T)  // T2 = 3*T2
 	p256AddInternal(T2H,T2L,T1,T0,T1,T0)
@@ -1754,7 +1754,7 @@ TEXT ·p256PointDoubleAsm(SB), NOSPLIT, $0-16
 	XXPERMDI Y0, Y0, $2, Y0
 	XXPERMDI Y1, Y1, $2, Y1
 
-	CALL p256MulInternal<>(SB)
+	CALL p256MulInternalFork<>(SB)
 
 	// Leave T0, T1 as is.
 	XXPERMDI T0, T0, $2, TT0
@@ -1765,7 +1765,7 @@ TEXT ·p256PointDoubleAsm(SB), NOSPLIT, $0-16
 	// X-  ; Y=X ; MUL; T-    // Y3 = Y3²
 	VOR  X0, X0, Y0
 	VOR  X1, X1, Y1
-	CALL p256MulInternal<>(SB)
+	CALL p256MulInternalFork<>(SB)
 
 	// X=T ; Y=X1; MUL; T3=T  // T3 = Y3*X1
 	VOR    T0, T0, X0
@@ -1774,14 +1774,14 @@ TEXT ·p256PointDoubleAsm(SB), NOSPLIT, $0-16
 	LXVD2X (R16)(P1ptr), Y1
 	XXPERMDI Y0, Y0, $2, Y0
 	XXPERMDI Y1, Y1, $2, Y1
-	CALL   p256MulInternal<>(SB)
+	CALL   p256MulInternalFork<>(SB)
 	VOR    T0, T0, T3L
 	VOR    T1, T1, T3H
 
 	// X-  ; Y=X ; MUL; T-    // Y3 = Y3²
 	VOR  X0, X0, Y0
 	VOR  X1, X1, Y1
-	CALL p256MulInternal<>(SB)
+	CALL p256MulInternalFork<>(SB)
 
 	// HAL(Y3<T)              // Y3 = half*Y3
 	p256HalfInternal(Y3H,Y3L, T1,T0)
@@ -1791,7 +1791,7 @@ TEXT ·p256PointDoubleAsm(SB), NOSPLIT, $0-16
 	VOR  T2H, T2H, X1
 	VOR  T2L, T2L, Y0
 	VOR  T2H, T2H, Y1
-	CALL p256MulInternal<>(SB)
+	CALL p256MulInternalFork<>(SB)
 
 	// ADD(T1<T3+T3)          // T1 = 2*T3
 	p256AddInternal(T1H,T1L,T3H,T3L,T3H,T3L)
@@ -1808,7 +1808,7 @@ TEXT ·p256PointDoubleAsm(SB), NOSPLIT, $0-16
 	p256SubInternalFork(X1,X0,T3H,T3L,X3H,X3L)
 
 	// X-  ; Y-  ; MUL; T-    // T1 = T1*T2
-	CALL p256MulInternal<>(SB)
+	CALL p256MulInternalFork<>(SB)
 
 	// SUB(Y3<T-Y3)           // Y3 = T1-Y3
 	p256SubInternalFork(Y3H,Y3L,T1,T0,Y3H,Y3L)
@@ -1984,12 +1984,12 @@ TEXT ·p256PointAddAsm(SB), NOSPLIT, $16-32
 	XXPERMDI X1, X1, $2, X1
 	VOR    X0, X0, Y0
 	VOR    X1, X1, Y1
-	CALL   p256MulInternal<>(SB)
+	CALL   p256MulInternalFork<>(SB)
 
 	// X-  ; Y=T ; MUL; R=T  // R  = Z1*T1
 	VOR  T0, T0, Y0
 	VOR  T1, T1, Y1
-	CALL p256MulInternal<>(SB)
+	CALL p256MulInternalFork<>(SB)
 	VOR  T0, T0, RL            // SAVE: RL
 	VOR  T1, T1, RH            // SAVE: RH
 
@@ -2001,7 +2001,7 @@ TEXT ·p256PointAddAsm(SB), NOSPLIT, $16-32
 	LXVD2X (R16)(P2ptr), X1     // X2H
 	XXPERMDI X0, X0, $2, X0
 	XXPERMDI X1, X1, $2, X1
-	CALL   p256MulInternal<>(SB)
+	CALL   p256MulInternalFork<>(SB)
 	VOR    T0, T0, HL            // SAVE: HL
 	VOR    T1, T1, HH            // SAVE: HH
 
@@ -2013,12 +2013,12 @@ TEXT ·p256PointAddAsm(SB), NOSPLIT, $16-32
 	XXPERMDI X1, X1, $2, X1
 	VOR    X0, X0, Y0
 	VOR    X1, X1, Y1
-	CALL   p256MulInternal<>(SB)
+	CALL   p256MulInternalFork<>(SB)
 
 	// X-  ; Y=T ; MUL; S1=T // S1 = Z2*T2
 	VOR  T0, T0, Y0
 	VOR  T1, T1, Y1
-	CALL p256MulInternal<>(SB)
+	CALL p256MulInternalFork<>(SB)
 	VOR  T0, T0, S1L           // SAVE: S1L
 	VOR  T1, T1, S1H           // SAVE: S1H
 
@@ -2028,7 +2028,7 @@ TEXT ·p256PointAddAsm(SB), NOSPLIT, $16-32
 	LXVD2X (R16)(P1ptr), X1     // X1H
 	XXPERMDI X0, X0, $2, X0
 	XXPERMDI X1, X1, $2, X1
-	CALL   p256MulInternal<>(SB)
+	CALL   p256MulInternalFork<>(SB)
 	VOR    T0, T0, U1L           // SAVE: U1L
 	VOR    T1, T1, U1H           // SAVE: U1H
 
@@ -2065,14 +2065,14 @@ TEXT ·p256PointAddAsm(SB), NOSPLIT, $16-32
 	LXVD2X (R20)(P2ptr), Y1        // Z2H
 	XXPERMDI Y0, Y0, $2, Y0
 	XXPERMDI Y1, Y1, $2, Y1
-	CALL   p256MulInternal<>(SB)
+	CALL   p256MulInternalFork<>(SB)
 
 	// X=T ; Y=H ; MUL; Z3:=T// Z3 = Z3*H
 	VOR     T0, T0, X0
 	VOR     T1, T1, X1
 	VOR     HL, HL, Y0
 	VOR     HH, HH, Y1
-	CALL    p256MulInternal<>(SB)
+	CALL    p256MulInternalFork<>(SB)
 	MOVD    res+0(FP), P3ptr
 	XXPERMDI T1, T1, $2, TT1
 	XXPERMDI T0, T0, $2, TT0
@@ -2087,7 +2087,7 @@ TEXT ·p256PointAddAsm(SB), NOSPLIT, $16-32
 	XXPERMDI X1, X1, $2, X1
 	VOR    S1L, S1L, Y0
 	VOR    S1H, S1H, Y1
-	CALL   p256MulInternal<>(SB)
+	CALL   p256MulInternalFork<>(SB)
 	VOR    T0, T0, S1L
 	VOR    T1, T1, S1H
 
@@ -2101,7 +2101,7 @@ TEXT ·p256PointAddAsm(SB), NOSPLIT, $16-32
 
 	// VOR RH, RH, Y1   RH was saved above in D2X format
 	LXVD2X (R1)(R17), Y1
-	CALL   p256MulInternal<>(SB)
+	CALL   p256MulInternalFork<>(SB)
 
 	// SUB(R<T-S1)           // R  = T-S1
 	p256SubInternalFork(RH,RL,T1,T0,S1H,S1L)
@@ -2135,19 +2135,19 @@ TEXT ·p256PointAddAsm(SB), NOSPLIT, $16-32
 	VOR  HH, HH, X1
 	VOR  HL, HL, Y0
 	VOR  HH, HH, Y1
-	CALL p256MulInternal<>(SB)
+	CALL p256MulInternalFork<>(SB)
 
 	// X-  ; Y=T ; MUL; T2=T // T2 = H*T1
 	VOR  T0, T0, Y0
 	VOR  T1, T1, Y1
-	CALL p256MulInternal<>(SB)
+	CALL p256MulInternalFork<>(SB)
 	VOR  T0, T0, T2L
 	VOR  T1, T1, T2H
 
 	// X=U1; Y-  ; MUL; U1=T // U1 = U1*T1
 	VOR  U1L, U1L, X0
 	VOR  U1H, U1H, X1
-	CALL p256MulInternal<>(SB)
+	CALL p256MulInternalFork<>(SB)
 	VOR  T0, T0, U1L
 	VOR  T1, T1, U1H
 
@@ -2162,7 +2162,7 @@ TEXT ·p256PointAddAsm(SB), NOSPLIT, $16-32
 	VOR    X1, X1, Y1
 
 	// VOR  RH, RH, Y1
-	CALL p256MulInternal<>(SB)
+	CALL p256MulInternalFork<>(SB)
 
 	// SUB(T<T-T2)           // X3 = X3-T2
 	p256SubInternalFork(T1,T0,T1,T0,T2H,T2L)
@@ -2186,7 +2186,7 @@ TEXT ·p256PointAddAsm(SB), NOSPLIT, $16-32
 
 	// VOR  RH, RH, X1
 	LXVD2X (R1)(R17), X1
-	CALL   p256MulInternal<>(SB)
+	CALL   p256MulInternalFork<>(SB)
 	VOR    T0, T0, U1L
 	VOR    T1, T1, U1H
 
@@ -2195,7 +2195,7 @@ TEXT ·p256PointAddAsm(SB), NOSPLIT, $16-32
 	VOR  S1H, S1H, X1
 	VOR  T2L, T2L, Y0
 	VOR  T2H, T2H, Y1
-	CALL p256MulInternal<>(SB)
+	CALL p256MulInternalFork<>(SB)
 
 	// SUB(T<U1-T); Y3:=T    // Y3 = Y3-T2 << store-out Y3 result reg
 	p256SubInternalFork(T1,T0,U1H,U1L,T1,T0)
