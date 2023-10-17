@@ -789,7 +789,7 @@ TEXT ·p256OrdMul(SB),NOSPLIT,$0
 
 	RET
 /* ---------------------------------------*/
-TEXT p256SubInternal<>(SB),NOSPLIT,$0
+TEXT p256SubInternalFork<>(SB),NOSPLIT,$0
 	SUBS	x0, y0, acc0
 	SBCS	x1, y1, acc1
 	SBCS	x2, y2, acc2
@@ -1152,7 +1152,7 @@ TEXT ·p256PointAddAffineAsm(SB),0,$264-48
 	CALL	p256MulInternal<>(SB)    // x2 * z1ˆ2
 
 	LDx(x1in)
-	CALL	p256SubInternal<>(SB)    // h = u2 - u1
+	CALL	p256SubInternalFork<>(SB)    // h = u2 - u1
 	STx(h)
 
 	LDy(z1in)
@@ -1185,7 +1185,7 @@ TEXT ·p256PointAddAffineAsm(SB),0,$264-48
 	STy(s2)
 
 	LDx(y1in)
-	CALL	p256SubInternal<>(SB)    // r = s2 - s1
+	CALL	p256SubInternalFork<>(SB)    // r = s2 - s1
 	STx(r)
 
 	CALL	p256SqrInternal<>(SB)    // rsqr = rˆ2
@@ -1213,14 +1213,14 @@ TEXT ·p256PointAddAffineAsm(SB),0,$264-48
 	p256MulBy2Inline               // u1 * hˆ2 * 2, inline
 
 	LDy(rsqr)
-	CALL	p256SubInternal<>(SB)    // rˆ2 - u1 * hˆ2 * 2
+	CALL	p256SubInternalFork<>(SB)    // rˆ2 - u1 * hˆ2 * 2
 
 	MOVD	x0, y0
 	MOVD	x1, y1
 	MOVD	x2, y2
 	MOVD	x3, y3
 	LDx(hcub)
-	CALL	p256SubInternal<>(SB)
+	CALL	p256SubInternalFork<>(SB)
 
 	LDP	0*16(a_ptr), (acc0, acc1)
 	LDP	1*16(a_ptr), (acc2, acc3)
@@ -1242,7 +1242,7 @@ TEXT ·p256PointAddAffineAsm(SB),0,$264-48
 
 	LDP	h(0*8), (y0, y1)
 	LDP	h(2*8), (y2, y3)
-	CALL	p256SubInternal<>(SB)
+	CALL	p256SubInternalFork<>(SB)
 
 	LDP	r(0*8), (y0, y1)
 	LDP	r(2*8), (y2, y3)
@@ -1250,7 +1250,7 @@ TEXT ·p256PointAddAffineAsm(SB),0,$264-48
 
 	LDP	s2(0*8), (x0, x1)
 	LDP	s2(2*8), (x2, x3)
-	CALL	p256SubInternal<>(SB)
+	CALL	p256SubInternalFork<>(SB)
 	LDP	2*16(a_ptr), (acc0, acc1)
 	LDP	3*16(a_ptr), (acc2, acc3)
 	ANDS	$1, hlp1, ZR           // iff select[0] == 0, y3 = y1
@@ -1320,7 +1320,7 @@ TEXT ·p256PointDoubleAsm(SB),NOSPLIT,$136-16
 
 	LDy(x1in)
 	LDx(zsqr)
-	CALL	p256SubInternal<>(SB)
+	CALL	p256SubInternalFork<>(SB)
 	LDy(m)
 	CALL	p256MulInternal<>(SB)
 
@@ -1369,18 +1369,18 @@ TEXT ·p256PointDoubleAsm(SB),NOSPLIT,$136-16
 	LDx(m)
 	CALL	p256SqrInternal<>(SB)
 	LDx(tmp)
-	CALL	p256SubInternal<>(SB)
+	CALL	p256SubInternalFork<>(SB)
 
 	STx(x3out)
 
 	LDy(s)
-	CALL	p256SubInternal<>(SB)
+	CALL	p256SubInternalFork<>(SB)
 
 	LDy(m)
 	CALL	p256MulInternal<>(SB)
 
 	LDx(y3out)
-	CALL	p256SubInternal<>(SB)
+	CALL	p256SubInternalFork<>(SB)
 	STx(y3out)
 	RET
 /* ---------------------------------------*/
@@ -1423,7 +1423,7 @@ TEXT ·p256PointAddAsm(SB),0,$392-32
 	CALL	p256MulInternal<>(SB)    // s2 = z1ˆ3*y2
 
 	LDx(s1)
-	CALL	p256SubInternal<>(SB)    // r = s2 - s1
+	CALL	p256SubInternalFork<>(SB)    // r = s2 - s1
 	STx(r)
 
 	MOVD	$1, t2
@@ -1454,7 +1454,7 @@ TEXT ·p256PointAddAsm(SB),0,$392-32
 	STy(u2)
 
 	LDx(u1)
-	CALL	p256SubInternal<>(SB)    // h = u2 - u1
+	CALL	p256SubInternalFork<>(SB)    // h = u2 - u1
 	STx(h)
 
 	MOVD	$1, t2
@@ -1507,24 +1507,24 @@ TEXT ·p256PointAddAsm(SB),0,$392-32
 
 	p256MulBy2Inline               // u1 * hˆ2 * 2, inline
 	LDy(rsqr)
-	CALL	p256SubInternal<>(SB)    // rˆ2 - u1 * hˆ2 * 2
+	CALL	p256SubInternalFork<>(SB)    // rˆ2 - u1 * hˆ2 * 2
 
 	MOVD	x0, y0
 	MOVD	x1, y1
 	MOVD	x2, y2
 	MOVD	x3, y3
 	LDx(hcub)
-	CALL	p256SubInternal<>(SB)
+	CALL	p256SubInternalFork<>(SB)
 	STx(x3out)
 
 	LDy(u2)
-	CALL	p256SubInternal<>(SB)
+	CALL	p256SubInternalFork<>(SB)
 
 	LDy(r)
 	CALL	p256MulInternal<>(SB)
 
 	LDx(s2)
-	CALL	p256SubInternal<>(SB)
+	CALL	p256SubInternalFork<>(SB)
 	STx(y3out)
 
 	MOVD	hlp1, R0

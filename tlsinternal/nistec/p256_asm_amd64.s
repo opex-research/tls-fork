@@ -1313,7 +1313,7 @@ ordSqrLoop:
 #define t3 SI
 #define hlp BP
 /* ---------------------------------------*/
-TEXT p256SubInternal(SB),NOSPLIT,$0
+TEXT p256SubInternalFork(SB),NOSPLIT,$0
 	XORQ mul0, mul0
 	SUBQ t0, acc4
 	SBBQ t1, acc5
@@ -1815,7 +1815,7 @@ TEXT ·p256PointAddAffineAsm(SB),0,$512-48
 	CALL p256MulInternal(SB)	// x2 * z1ˆ2
 
 	LDt (x1in)
-	CALL p256SubInternal(SB)	// h = u2 - u1
+	CALL p256SubInternalFork(SB)	// h = u2 - u1
 	ST (h)
 
 	LDt (z1in)
@@ -1830,7 +1830,7 @@ TEXT ·p256PointAddAffineAsm(SB),0,$512-48
 	ST (s2)
 
 	LDt (y1in)
-	CALL p256SubInternal(SB)	// r = s2 - s1
+	CALL p256SubInternalFork(SB)	// r = s2 - s1
 	ST (r)
 
 	CALL p256SqrInternal(SB)	// rsqr = rˆ2
@@ -1855,10 +1855,10 @@ TEXT ·p256PointAddAffineAsm(SB),0,$512-48
 
 	p256MulBy2Inline			// u1 * hˆ2 * 2, inline
 	LDacc (rsqr)
-	CALL p256SubInternal(SB)	// rˆ2 - u1 * hˆ2 * 2
+	CALL p256SubInternalFork(SB)	// rˆ2 - u1 * hˆ2 * 2
 
 	LDt (hcub)
-	CALL p256SubInternal(SB)
+	CALL p256SubInternalFork(SB)
 	ST (xout)
 
 	MOVQ acc4, t0
@@ -1866,13 +1866,13 @@ TEXT ·p256PointAddAffineAsm(SB),0,$512-48
 	MOVQ acc6, t2
 	MOVQ acc7, t3
 	LDacc (h)
-	CALL p256SubInternal(SB)
+	CALL p256SubInternalFork(SB)
 
 	LDt (r)
 	CALL p256MulInternal(SB)
 
 	LDt (s2)
-	CALL p256SubInternal(SB)
+	CALL p256SubInternalFork(SB)
 	ST (yout)
 	// Load stored values from stack
 	MOVQ rptr, AX
@@ -2101,7 +2101,7 @@ TEXT ·p256PointAddAsm(SB),0,$680-32
 	ST (s2)
 
 	LDt (s1)
-	CALL p256SubInternal(SB)	// r = s2 - s1
+	CALL p256SubInternalFork(SB)	// r = s2 - s1
 	ST (r)
 	CALL p256IsZero(SB)
 	MOVQ AX, points_eq
@@ -2116,7 +2116,7 @@ TEXT ·p256PointAddAsm(SB),0,$680-32
 	ST (u2)
 
 	LDt (u1)
-	CALL p256SubInternal(SB)	// h = u2 - u1
+	CALL p256SubInternalFork(SB)	// h = u2 - u1
 	ST (h)
 	CALL p256IsZero(SB)
 	ANDQ points_eq, AX
@@ -2152,10 +2152,10 @@ TEXT ·p256PointAddAsm(SB),0,$680-32
 
 	p256MulBy2Inline	// u1 * hˆ2 * 2, inline
 	LDacc (rsqr)
-	CALL p256SubInternal(SB)	// rˆ2 - u1 * hˆ2 * 2
+	CALL p256SubInternalFork(SB)	// rˆ2 - u1 * hˆ2 * 2
 
 	LDt (hcub)
-	CALL p256SubInternal(SB)
+	CALL p256SubInternalFork(SB)
 	ST (xout)
 
 	MOVQ acc4, t0
@@ -2163,13 +2163,13 @@ TEXT ·p256PointAddAsm(SB),0,$680-32
 	MOVQ acc6, t2
 	MOVQ acc7, t3
 	LDacc (u2)
-	CALL p256SubInternal(SB)
+	CALL p256SubInternalFork(SB)
 
 	LDt (r)
 	CALL p256MulInternal(SB)
 
 	LDt (s2)
-	CALL p256SubInternal(SB)
+	CALL p256SubInternalFork(SB)
 	ST (yout)
 
 	MOVOU xout(16*0), X0
@@ -2267,7 +2267,7 @@ TEXT ·p256PointDoubleAsm(SB),NOSPLIT,$256-16
 
 	LDacc (x)
 	LDt (zsqr)
-	CALL p256SubInternal(SB)
+	CALL p256SubInternalFork(SB)
 	LDt (m)
 	CALL p256MulInternal(SB)
 	ST (m)
@@ -2319,7 +2319,7 @@ TEXT ·p256PointDoubleAsm(SB),NOSPLIT,$256-16
 	LDacc (m)
 	CALL p256SqrInternal(SB)
 	LDt (tmp)
-	CALL p256SubInternal(SB)
+	CALL p256SubInternalFork(SB)
 
 	MOVQ rptr, AX
 	// Store x
@@ -2330,13 +2330,13 @@ TEXT ·p256PointDoubleAsm(SB),NOSPLIT,$256-16
 
 	acc2t
 	LDacc (s)
-	CALL p256SubInternal(SB)
+	CALL p256SubInternalFork(SB)
 
 	LDt (m)
 	CALL p256MulInternal(SB)
 
 	LDt (y)
-	CALL p256SubInternal(SB)
+	CALL p256SubInternalFork(SB)
 	MOVQ rptr, AX
 	// Store y
 	MOVQ acc4, (16*2 + 8*0)(AX)
